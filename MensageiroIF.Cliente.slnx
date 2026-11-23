@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="MensageiroIF.Cliente/MensageiroIF.Cliente.csproj" Id="4bb627e3-e319-4005-9986-fabded02ad06" />
+  <Project Path="MensageiroIF.Servidor/MensageiroIF.Servidor.csproj" Id="910bb232-0664-4a3a-9834-c355f215ebfc" />
+  <Project Path="MensageiroIF.Testes/MensageiroIF.Testes.csproj" Id="ffdd48f7-4748-415b-aef3-d763b5ceeecd" />
+</Solution>
