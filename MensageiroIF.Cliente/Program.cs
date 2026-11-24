@@ -21,16 +21,7 @@ namespace MensageiroIF.Cliente
         static void Main()
         {
             try 
-            {
-                /*IRepositorioDeMensagens repo = new RepositorioEmMemoria();
-                ServicoDeHistorico historico = new ServicoDeHistorico(repo);
-                Usuario Rafael = new Usuario("rafael");
-                Usuario Leonardo = new Usuario("leonardo");
-
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new FormEnvio(historico, Rafael, Leonardo));
-                */
+            { 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new FormCadastro());

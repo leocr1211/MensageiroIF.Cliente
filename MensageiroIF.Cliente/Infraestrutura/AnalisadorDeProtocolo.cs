@@ -3,48 +3,63 @@ using MensageiroIF.Cliente.Dominio;
 using MensageiroIF.Cliente.Infraestrutura;
 using MensageiroIF.Cliente.Servicos;
 using MensageiroIF.Cliente.Excecoes;
-using Microsoft.SqlServer.Server;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static System.Windows.Forms.LinkLabel;
-
 
 namespace MensageiroIF.Cliente.Infraestrutura
 {
-    /// <summary>
-    /// Testando strings e comandos para mexer em strings.
-    /// </summary>
     public class AnalisadorDeProtocolo
     {
-        private const string PADRAO = @"^ENVIAR\|[^|]+\|[^|]+\|\d\d\d\d-\d\d-\d\dT\d\d:\d\d\|.*$";
-
         public MensagemTexto Analisar(string linha)
         {
-            linha = linha.Trim();
-
-            if (!Regex.IsMatch(linha, PADRAO))
+            if (string.IsNullOrWhiteSpace(linha))
             {
-                throw new ProtocoloInvalidoException(linha);
+                throw new ProtocoloInvalidoException("O protocolo não pode estar vazio.");
             }
 
             string[] campos = linha.Split('|');
 
-            Usuario Remetente = new Usuario(campos[1].Trim());
-            Usuario Destinatario = new Usuario(campos[2].Trim());
+            if (campos.Length < 5)
+            {
+                throw new ProtocoloInvalidoException("O protocolo possui campos insuficientes.");
+            }
+
+            string comando = campos[0].Trim();
+
+            if (comando != "ENVIAR")
+            {
+                throw new ProtocoloInvalidoException("Comando inválido. Esperado: ENVIAR.");
+            }
+
+            string Remetente = campos[1].Trim();
+            if (string.IsNullOrWhiteSpace(Remetente))
+            {
+                throw new ProtocoloInvalidoException("O remetente não pode estar vazio.");
+            }
+            string Destinatario = campos[2].Trim();
+            
+            string dataTexto = campos[3].Trim();
+            DateTime dataHora;
+            bool dataValida = DateTime.TryParse(dataTexto, out dataHora);
+            if (!dataValida)
+            {
+                throw new ProtocoloInvalidoException("A data informada é inválida.");
+            }
+            
             string conteudo = string.Join("|", campos.Skip(4));
-            DateTime dataHora = DateTime.Parse(campos[3].Trim());
+            if (string.IsNullOrWhiteSpace(conteudo))
+            {
+                throw new ProtocoloInvalidoException("O conteúdo da mensagem não pode estar vazio.");
+            }
+            Usuario remetente = new Usuario(Remetente);
+            Usuario destinatario = new Usuario(Destinatario);
+            MensagemTexto mensagem = new MensagemTexto(conteudo, remetente, destinatario, dataHora);
 
-            MensagemTexto mensagem = new MensagemTexto(conteudo, Remetente, Destinatario, dataHora);
-
-            mensagem.Remetente = Remetente.Apelido;
-            mensagem.Destinatario = Destinatario.Apelido;
+            mensagem.Remetente = remetente.Apelido;
+            mensagem.Destinatario = destinatario.Apelido;
             mensagem.Corpo = conteudo;
             mensagem.Data = dataHora;
 

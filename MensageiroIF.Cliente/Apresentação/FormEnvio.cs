@@ -29,27 +29,54 @@ namespace MensageiroIF.Cliente.Apresentação
             this.servico = servico;
             this.usuarioAtual = usuarioAtual;
             this.usuarioDestinatario = usuarioDestinatario;
+            conexao.MensagemRecebida += ReceberMensagem;
+            FormClosed += (s, e) => conexao.Desconectar();
             AtualizarHistorico();
+            CarregarDestinatarios();
         }
-
-        private async void FormEnvio_Load(object sender, EventArgs e)
+        public void CarregarDestinatarios()
         {
-            try
+            cmbDestinatario.Items.Clear();
+
+            cmbDestinatario.Items.Add("Chat Geral");
+
+            foreach (string usuario in ControleDeLogin.ObterUsuariosCadastrados())
             {
-                string ip = ObterIpLocal();
-                await conexao.ConectarAsync(ip, 5000);
-                MessageBox.Show("Conectado ao servidor!");
+                if (usuario != usuarioAtual.Apelido)
+                {
+                    cmbDestinatario.Items.Add(usuario);
+                }
             }
-            catch (Exception ex)
+            if (cmbDestinatario.Items.Count > 0)
             {
-                MessageBox.Show("Não foi possível conectar: " + ex.Message);
+                cmbDestinatario.SelectedIndex = 0;
             }
         }
         public void AtualizarHistorico()
         {
             lstHistorico.Items.Clear();
+            if (cmbDestinatario.SelectedItem == null)
+                return;
+            string selecionado = cmbDestinatario.SelectedItem.ToString();
             foreach (Mensagem m in servico.ObterHistorico())
-            lstHistorico.Items.Add(m.ToString());
+            {
+                if (selecionado == "Chat Geral")
+                {
+                    if (m.Destinatario == "Chat Geral")
+                    {
+                        lstHistorico.Items.Add(m.ToString());
+                    }
+                }
+                else
+                {
+                    bool mensagemEnviada = m.Remetente == usuarioAtual.Apelido && m.Destinatario == selecionado;
+                    bool mensagemRecebida = m.Remetente == selecionado && m.Destinatario == usuarioAtual.Apelido;
+                    if (mensagemEnviada || mensagemRecebida)
+                    {
+                        lstHistorico.Items.Add(m.ToString());
+                    }
+                }
+            }
         }
         static string ObterIpLocal()
         {
@@ -57,12 +84,62 @@ namespace MensageiroIF.Cliente.Apresentação
             var ipEncontrado = host.AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
             return ipEncontrado != null ? ipEncontrado.ToString() : "127.0.0.1";
         }
-
-        private void btnEnviar_Click(object sender, EventArgs e)
+        public void ReceberMensagem(string linha)
         {
             try
             {
-                servico.Registrar(txtMensagem.Text, usuarioAtual, usuarioDestinatario, DateTime.Now);
+                AnalisadorDeProtocolo analisador = new AnalisadorDeProtocolo();
+
+                MensagemTexto mensagem = analisador.Analisar(linha);
+                if (IsDisposed || !IsHandleCreated)
+                    return;
+                BeginInvoke(new Action(() =>{ servico.AdicionarMensagem(mensagem); AtualizarHistorico(); }));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
+        }
+        private async void FormEnvio_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                string ip = ObterIpLocal();
+                await conexao.ConectarAsync("127.0.0.1", 5000, usuarioAtual.Apelido);
+                MessageBox.Show("Conectado ao servidor!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Não foi possível conectar: " + ex.Message);
+            }
+        }
+        private async void btnEnviar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (cmbDestinatario.SelectedItem == null)
+                {
+                    MessageBox.Show("Selecione um destinatário.");
+                    return;
+                }
+                string destinatario = cmbDestinatario.SelectedItem.ToString();
+                string texto = txtMensagem.Text.Trim();
+                if (string.IsNullOrWhiteSpace(destinatario))
+                {
+                    MessageBox.Show("Informe o destinatário.");
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(texto))
+                {
+                    MessageBox.Show("Digite uma mensagem.");
+                    return;
+                }
+                usuarioDestinatario.Apelido = destinatario;
+                DateTime data = DateTime.Now;
+                texto = texto.Replace("\r", " ").Replace("\n", " ");
+                string protocolo = $"ENVIAR|{usuarioAtual.Apelido}|{destinatario}|{data:yyyy-MM-dd'T'HH:mm}|{texto}";
+                await conexao.EnviarAsync(protocolo);
+                servico.Registrar(texto, usuarioAtual, usuarioDestinatario, data);
                 AtualizarHistorico();
                 txtMensagem.Clear();
             }
@@ -70,11 +147,15 @@ namespace MensageiroIF.Cliente.Apresentação
             {
                 MessageBox.Show(ex.Message, "Mensagem inválida");
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao enviar mensagem: " + ex.Message);
+            }
         }
-
-        private void lstHistorico_SelectedIndexChanged(object sender, EventArgs e)
+        private void lstHistorico_SelectedIndexChanged(object sender, EventArgs e){}
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            
+            AtualizarHistorico();
         }
     }
 }
