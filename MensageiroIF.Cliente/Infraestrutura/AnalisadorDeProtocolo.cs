@@ -24,7 +24,6 @@ namespace MensageiroIF.Cliente.Infraestrutura
     public class AnalisadorDeProtocolo
     {
         private const string PADRAO = @"^ENVIAR\|[^|]+\|[^|]+\|\d\d\d\d-\d\d-\d\dT\d\d:\d\d\|.*$";
-        public string linha = $"ENVIAR | ana | bruno | {DateTime.Now} | Bom dia";
 
         public MensagemTexto Analisar(string linha)
         {
@@ -39,17 +38,17 @@ namespace MensageiroIF.Cliente.Infraestrutura
 
             Usuario Remetente = new Usuario(campos[1].Trim());
             Usuario Destinatario = new Usuario(campos[2].Trim());
-            string conteudo = campos[4].Trim();
+            string conteudo = string.Join("|", campos.Skip(4));
             DateTime dataHora = DateTime.Parse(campos[3].Trim());
 
-            MensagemTexto mens = new MensagemTexto(conteudo, Remetente, Destinatario, dataHora);
+            MensagemTexto mensagem = new MensagemTexto(conteudo, Remetente, Destinatario, dataHora);
 
-            mens.Remetente = Remetente.Apelido;
-            mens.Destinatario = Destinatario.Apelido;
-            mens.Corpo = conteudo;
-            mens.Data = dataHora;
+            mensagem.Remetente = Remetente.Apelido;
+            mensagem.Destinatario = Destinatario.Apelido;
+            mensagem.Corpo = conteudo;
+            mensagem.Data = dataHora;
 
-            return mens;
+            return mensagem;
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using MensageiroIF.Cliente.Dominio;
+﻿using MensageiroIF.Cliente.Contratos;
+using MensageiroIF.Cliente.Dominio;
 using MensageiroIF.Cliente.Excecoes;
+using MensageiroIF.Cliente.Infraestrutura;
 using MensageiroIF.Cliente.Servicos;
 using System;
 using System.Collections.Generic;
@@ -27,6 +29,7 @@ namespace MensageiroIF.Cliente.Apresentação
             this.servico = servico;
             this.usuarioAtual = usuarioAtual;
             this.usuarioDestinatario = usuarioDestinatario;
+            AtualizarHistorico();
         }
 
         private async void FormEnvio_Load(object sender, EventArgs e)
@@ -46,7 +49,7 @@ namespace MensageiroIF.Cliente.Apresentação
         {
             lstHistorico.Items.Clear();
             foreach (Mensagem m in servico.ObterHistorico())
-                lstHistorico.Items.Add(m.ToString());
+            lstHistorico.Items.Add(m.ToString());
         }
         static string ObterIpLocal()
         {
@@ -67,6 +70,11 @@ namespace MensageiroIF.Cliente.Apresentação
             {
                 MessageBox.Show(ex.Message, "Mensagem inválida");
             }
+        }
+
+        private void lstHistorico_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
         }
     }
 }

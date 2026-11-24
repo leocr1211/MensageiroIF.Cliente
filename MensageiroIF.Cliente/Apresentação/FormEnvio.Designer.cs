@@ -58,6 +58,7 @@
             this.lstHistorico.Name = "lstHistorico";
             this.lstHistorico.Size = new System.Drawing.Size(520, 277);
             this.lstHistorico.TabIndex = 2;
+            this.lstHistorico.SelectedIndexChanged += new System.EventHandler(this.lstHistorico_SelectedIndexChanged);
             // 
             // FormEnvio
             // 

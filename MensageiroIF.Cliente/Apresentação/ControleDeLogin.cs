@@ -78,9 +78,8 @@ namespace MensageiroIF.Cliente.Apresentação
             MessageBox.Show("Login realizado com sucesso!");
 
             Usuario remetente = new Usuario(nome);
-            IRepositorioDeMensagens repo = new RepositorioEmMemoria();
+            IRepositorioDeMensagens repo = new RepositorioEmArquivo();
             ServicoDeHistorico servico = new ServicoDeHistorico(repo);
-
             Form formularioLogin = FindForm();
             FormEnvio formularioEnvio = new FormEnvio(servico, remetente, new Usuario(""));
             formularioEnvio.FormClosed += (s, args) =>{ formularioLogin.Close(); };
