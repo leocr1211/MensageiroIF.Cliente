@@ -21,18 +21,10 @@ namespace MensageiroIF.Cliente.Apresentação
         public FormCadastro()
         {
             InitializeComponent();
-
             IRepositorioDeMensagens repo = new RepositorioEmMemoria();
             historico = new ServicoDeHistorico(repo);
         }
-        
-        private void FormCadastro_Load(object sender, EventArgs e)
-        {
-        }
-
-        private void controleDeLogin1_Load(object sender, EventArgs e)
-        {
-
-        }
+        private void FormCadastro_Load(object sender, EventArgs e){}
+        private void controleDeLogin1_Load(object sender, EventArgs e){}
     }
 }

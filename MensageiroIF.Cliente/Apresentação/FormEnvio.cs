@@ -1,7 +1,5 @@
-﻿using MensageiroIF.Cliente.Contratos;
-using MensageiroIF.Cliente.Dominio;
+﻿using MensageiroIF.Cliente.Dominio;
 using MensageiroIF.Cliente.Excecoes;
-using MensageiroIF.Cliente.Infraestrutura;
 using MensageiroIF.Cliente.Servicos;
 using System;
 using System.Collections.Generic;
@@ -15,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace MensageiroIF.Cliente
+namespace MensageiroIF.Cliente.Apresentação
 {
     public partial class FormEnvio : Form
     {
@@ -30,6 +28,7 @@ namespace MensageiroIF.Cliente
             this.usuarioAtual = usuarioAtual;
             this.usuarioDestinatario = usuarioDestinatario;
         }
+
         private async void FormEnvio_Load(object sender, EventArgs e)
         {
             try
@@ -43,26 +42,6 @@ namespace MensageiroIF.Cliente
                 MessageBox.Show("Não foi possível conectar: " + ex.Message);
             }
         }
-        private async void btnEnviar_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                string texto = txtMensagem.Text;
-                servico.Registrar(texto, usuarioAtual, usuarioDestinatario, DateTime.Now);
-                await conexao.EnviarAsync(texto);
-                AtualizarHistorico();
-                txtMensagem.Clear();
-            }
-            catch (ProtocoloInvalidoException ex)
-            {
-                MessageBox.Show(ex.Message, "Mensagem inválida");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Erro ao enviar");
-            }
-        }
-
         public void AtualizarHistorico()
         {
             lstHistorico.Items.Clear();
@@ -74,6 +53,20 @@ namespace MensageiroIF.Cliente
             var host = Dns.GetHostEntry(Dns.GetHostName());
             var ipEncontrado = host.AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
             return ipEncontrado != null ? ipEncontrado.ToString() : "127.0.0.1";
+        }
+
+        private void btnEnviar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                servico.Registrar(txtMensagem.Text, usuarioAtual, usuarioDestinatario, DateTime.Now);
+                AtualizarHistorico();
+                txtMensagem.Clear();
+            }
+            catch (ProtocoloInvalidoException ex)
+            {
+                MessageBox.Show(ex.Message, "Mensagem inválida");
+            }
         }
     }
 }

@@ -1,4 +1,8 @@
 ﻿using MensageiroIF.Cliente.Dominio;
+using MensageiroIF.Cliente.Servicos;
+using MensageiroIF.Cliente.Infraestrutura;
+using MensageiroIF.Cliente.Contratos;
+using MensageiroIF.Cliente.Excecoes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -40,9 +44,6 @@ namespace MensageiroIF.Cliente.Apresentação
         public ControleDeLogin()
         {
             InitializeComponent();
-
-            BotaoEntrar.Click += btnEntra_Click;
-            BotaoCadastro.Click += btnCasdastra_Click;
         }
 
         private void grpCaixaDeLogin_Enter(object sender, EventArgs e)
@@ -55,27 +56,58 @@ namespace MensageiroIF.Cliente.Apresentação
             string nome = NomeDoUsuario.Trim();
             string senha = SenhaDoUsuario;
 
-            if (string.IsNullOrWhiteSpace(nome) || nome.Count() < 6 ||
+            if (string.IsNullOrWhiteSpace(nome) ||
                 string.IsNullOrWhiteSpace(senha))
             {
-                MessageBox.Show("Preencha o nome e a senha, e o nome deve ter pelo menos 6 caracteres.");
+                MessageBox.Show("Preencha o nome e a senha.");
+                return;
+            }
+
+            if (!usuarios.TryGetValue(nome, out string senhaCadastrada))
+            {
+                MessageBox.Show("Usuário não encontrado.");
+                return;
+            }
+
+            if (senhaCadastrada != senha)
+            {
+                MessageBox.Show("Senha incorreta.");
+                return;
+            }
+
+            MessageBox.Show("Login realizado com sucesso!");
+
+            Usuario remetente = new Usuario(nome);
+            IRepositorioDeMensagens repo = new RepositorioEmMemoria();
+            ServicoDeHistorico servico = new ServicoDeHistorico(repo);
+
+            Form formularioLogin = FindForm();
+            FormEnvio formularioEnvio = new FormEnvio(servico, remetente, new Usuario(""));
+            formularioEnvio.FormClosed += (s, args) =>{ formularioLogin.Close(); };
+            formularioEnvio.Show();
+        }
+
+        private void btnCasdastra_Click(object sender, EventArgs e)
+        {
+            string nome = NomeDoUsuario.Trim();
+            string senha = SenhaDoUsuario;
+
+            if (string.IsNullOrWhiteSpace(nome) || nome.Length < 6 ||
+                string.IsNullOrWhiteSpace(senha))
+            {
+                MessageBox.Show("Preencha o nome e a senha. O nome deve ter pelo menos 6 caracteres.");
                 return;
             }
 
             if (usuarios.ContainsKey(nome))
             {
-                MessageBox.Show("Usuário já cadastrado.");
+                MessageBox.Show("Este usuário já está cadastrado.");
                 return;
             }
 
             usuarios.Add(nome, senha);
 
             MessageBox.Show("Cadastro realizado com sucesso!");
-        }
-
-        private void btnCasdastra_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
