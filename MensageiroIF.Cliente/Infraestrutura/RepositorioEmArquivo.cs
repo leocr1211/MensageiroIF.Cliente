@@ -14,32 +14,30 @@ namespace MensageiroIF.Cliente.Infraestrutura
 {
     public class RepositorioEmArquivo : IRepositorioDeMensagens
     {
-        private const string CAMINHO = "historico.txt";
-        public void Guardar(Mensagem m)
+        private readonly CanalArquivo canal;
+        public RepositorioEmArquivo()
         {
-            string linha = $"ENVIAR|{m.Remetente}|{m.Destinatario}|{m.Data:yyyy-MM-ddTHH:mm:ss}|{m.Corpo}";
-            using (Stream arquivo = File.Open(CAMINHO, FileMode.Append))
-            using (StreamWriter escritor = new StreamWriter(arquivo))
-            {
-                escritor.WriteLine(linha);
-            }
+            canal = new CanalArquivo("historico.txt");
+        }
+        public void Guardar(Mensagem mensagem)
+        {
+            string linha = $"ENVIAR|{mensagem.Remetente}|{mensagem.Destinatario}|{mensagem.Data:yyyy-MM-ddTHH:mm:ss}|{mensagem.Corpo}";
+            canal.Enviar(linha);
         }
         public List<Mensagem> Listar()
         {
             List<Mensagem> mensagens = new List<Mensagem>();
-            if (!File.Exists(CAMINHO)) return mensagens;
             AnalisadorDeProtocolo analisador = new AnalisadorDeProtocolo();
-            using (Stream arquivo = File.Open(CAMINHO, FileMode.Open))
-            using (StreamReader leitor = new StreamReader(arquivo))
+            foreach (string linha in canal.ReceberTodas())
             {
-                string linha = leitor.ReadLine();
-                while (linha != null)
+                if (string.IsNullOrWhiteSpace(linha)) continue;
+                try
                 {
-                    if (!string.IsNullOrWhiteSpace(linha))
-                    {
-                        mensagens.Add(analisador.Analisar(linha));
-                    }
-                    linha = leitor.ReadLine();
+                    mensagens.Add(analisador.Analisar(linha));
+                }
+                catch(ProtocoloInvalidoException ex)
+                {
+                    MessageBox.Show("Erro ao analisar linha: " + ex.Message);
                 }
             }
             return mensagens;

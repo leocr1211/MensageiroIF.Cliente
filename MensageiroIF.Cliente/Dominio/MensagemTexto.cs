@@ -13,22 +13,17 @@ namespace MensageiroIF.Cliente.Dominio
 {
     public class MensagemTexto : Mensagem
     {
-        private string texto;
-        private Usuario de;
-        private Usuario para;
-        private DateTime? data;
-
         public MensagemTexto(string texto, Usuario de, Usuario para, DateTime data)
         {
             Corpo = texto;
             Remetente = de.Apelido;
-            this.para = para;
+            Destinatario = para.Apelido;
             Data = data;
         }
 
         public override void Exibir()
         {
-            Console.WriteLine($"\n[TEXTO] - {Remetente} para {para} ({Data:HH:mm}): {Corpo}");
+            Console.WriteLine($"\n[TEXTO] - {Remetente} para {Destinatario} ({Data:HH:mm}): {Corpo}");
         }
     }
 }

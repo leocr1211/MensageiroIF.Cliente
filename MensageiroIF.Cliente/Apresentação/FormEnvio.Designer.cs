@@ -91,7 +91,7 @@
             this.Controls.Add(this.txtMensagem);
             this.Controls.Add(this.btnEnviar);
             this.Name = "FormEnvio";
-            this.Text = "FormEnvio";
+            this.Text = "MensageiroIF.Cliente - Canal de Mensagens";
             this.Load += new System.EventHandler(this.FormEnvio_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

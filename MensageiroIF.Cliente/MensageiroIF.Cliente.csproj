@@ -74,6 +74,9 @@
     <Compile Include="Dominio\Usuario.cs" />
     <Compile Include="Excecoes\MensagemInvalidaException.cs" />
     <Compile Include="Excecoes\ProtocoloInvalidoException.cs" />
+    <Compile Include="Funcoes\FuncoesEventos.cs" />
+    <Compile Include="Funcoes\FuncoesMensagem.cs" />
+    <Compile Include="Funcoes\FuncoesUsuario.cs" />
     <Compile Include="Infraestrutura\AnalisadorDeProtocolo.cs" />
     <Compile Include="Infraestrutura\CanalArquivo.cs" />
     <Compile Include="Infraestrutura\RegistradorDeLog.cs" />
@@ -83,8 +86,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Servicos\Pedido.cs" />
+    <Compile Include="Servicos\ProcessadorEventos.cs" />
     <Compile Include="Servicos\ServicoDeHistorico.cs" />
-    <Compile Include="Servicos\Servidor.cs" />
     <EmbeddedResource Include="Apresentação\ControleDeLogin.resx">
       <DependentUpon>ControleDeLogin.cs</DependentUpon>
     </EmbeddedResource>

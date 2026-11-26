@@ -1,14 +1,15 @@
-﻿using MensageiroIF.Cliente.Dominio;
-using MensageiroIF.Cliente.Servicos;
-using MensageiroIF.Cliente.Infraestrutura;
-using MensageiroIF.Cliente.Contratos;
+﻿using MensageiroIF.Cliente.Contratos;
+using MensageiroIF.Cliente.Dominio;
 using MensageiroIF.Cliente.Excecoes;
+using MensageiroIF.Cliente.Funcoes;
+using MensageiroIF.Cliente.Infraestrutura;
+using MensageiroIF.Cliente.Servicos;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.IO;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,6 +43,7 @@ namespace MensageiroIF.Cliente.Apresentação
         }
         public ControleDeLogin()
         {
+ 
             InitializeComponent();
         }
         static ControleDeLogin()
@@ -49,7 +51,6 @@ namespace MensageiroIF.Cliente.Apresentação
             if (File.Exists(caminhoArquivo))
             {
                 string[] linhas = File.ReadAllLines(caminhoArquivo);
-
                 foreach (string linha in linhas)
                 {
                     string[] dados = linha.Split('|');
@@ -67,66 +68,46 @@ namespace MensageiroIF.Cliente.Apresentação
                 }
             }
         }
-        public static List<string> ObterUsuariosCadastrados()
+        private void grpCaixaDeLogin_Enter(object sender, EventArgs e)
         {
-            return usuarios.Keys.ToList();
+
         }
-        private void grpCaixaDeLogin_Enter(object sender, EventArgs e){}
         private void btnEntra_Click(object sender, EventArgs e)
         {
             string nome = NomeDoUsuario.Trim();
             string senha = SenhaDoUsuario;
-            if (string.IsNullOrWhiteSpace(nome) ||
-                string.IsNullOrWhiteSpace(senha))
-            {
-                MessageBox.Show("Preencha o nome e a senha.");
-                return;
-            }
-            if (!usuarios.TryGetValue(nome, out string senhaCadastrada))
-            {
-                MessageBox.Show("Usuário não encontrado.");
-                return;
-            }
-            if (senhaCadastrada != senha)
-            {
-                MessageBox.Show("Senha incorreta.");
-                return;
-            }
-            MessageBox.Show("Login realizado com sucesso!");
-            Usuario remetente = new Usuario(nome);
-            IRepositorioDeMensagens repo = new RepositorioEmArquivo();
-            ServicoDeHistorico servico = new ServicoDeHistorico(repo);
-            Form formularioLogin = FindForm();
-            FormEnvio formularioEnvio = new FormEnvio(servico, remetente, new Usuario(""));
-            formularioEnvio.FormClosed += (s, args) =>{ formularioLogin.Close(); };
-            formularioEnvio.Show();
-        }
 
+            if (FuncoesUsuario.VerificarLogin(nome, senha))
+            {
+                MessageBox.Show("Login realizado!");
+                FuncoesEventos.RegistrarEntrada(nome);
+
+                Usuario remetente = new Usuario(nome);
+                IRepositorioDeMensagens repo = new RepositorioEmArquivo();
+                ServicoDeHistorico servico = new ServicoDeHistorico(repo);
+                Form formularioLogin = FindForm();
+                FormEnvio formularioEnvio = new FormEnvio(servico, remetente, new Usuario(""));
+                formularioEnvio.FormClosed += (s, args) => { formularioLogin.Close(); };
+                formularioEnvio.Show();
+            }
+            else
+            {
+                MessageBox.Show("Usuário ou senha incorretos.");
+            }
+        }
         private void btnCasdastra_Click(object sender, EventArgs e)
         {
-            string nome = NomeDoUsuario.Trim();
-            string senha = SenhaDoUsuario;
-            if (string.IsNullOrWhiteSpace(nome) || nome.Length < 6 ||
-                string.IsNullOrWhiteSpace(senha))
-            {
-                MessageBox.Show("Preencha o nome e a senha. O nome deve ter pelo menos 6 caracteres.");
-                return;
-            }
-            if (usuarios.ContainsKey(nome))
-            {
-                MessageBox.Show("Este usuário já está cadastrado.");
-                return;
-            }
             try
             {
-                File.AppendAllText(caminhoArquivo, nome + "|" + senha + Environment.NewLine);
-                usuarios.Add(nome, senha);
-                MessageBox.Show("Cadastro realizado com sucesso!");
+                FuncoesUsuario.Cadastrar(NomeDoUsuario.Trim(), SenhaDoUsuario);
+                FuncoesEventos.RegistrarCadastro(NomeDoUsuario.Trim());
+                MessageBox.Show("Cadastro realizado!");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao salvar usuário: " + ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
+    
     }
 }

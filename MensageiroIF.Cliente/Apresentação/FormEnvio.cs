@@ -1,119 +1,149 @@
-﻿using MensageiroIF.Cliente.Contratos;
+﻿
 using MensageiroIF.Cliente.Dominio;
-using MensageiroIF.Cliente.Excecoes;
-using MensageiroIF.Cliente.Infraestrutura;
 using MensageiroIF.Cliente.Servicos;
+using MensageiroIF.Cliente.Funcoes;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using MensageiroIF.Cliente.Excecoes;
 
 namespace MensageiroIF.Cliente.Apresentação
 {
     public partial class FormEnvio : Form
     {
-        private readonly Servidor conexao = new Servidor();
         private readonly ServicoDeHistorico servico;
         private readonly Usuario usuarioAtual;
-        private readonly Usuario usuarioDestinatario;
+        private readonly Timer temporizador = new Timer();
+        private int quantidadeMensagens;
+
         public FormEnvio(ServicoDeHistorico servico, Usuario usuarioAtual, Usuario usuarioDestinatario)
         {
             InitializeComponent();
+
             this.servico = servico;
             this.usuarioAtual = usuarioAtual;
-            this.usuarioDestinatario = usuarioDestinatario;
-            conexao.MensagemRecebida += ReceberMensagem;
-            FormClosed += (s, e) => conexao.Desconectar();
-            AtualizarHistorico();
+
             CarregarDestinatarios();
+
+            AtualizarHistorico();
+
+            quantidadeMensagens = servico.Resumo();
+
+            temporizador.Interval = 1000;
+            temporizador.Tick += Temporizador_Tick;
+            temporizador.Start();
+
+            FormClosed += FormEnvio_FormClosed;
         }
-        public void CarregarDestinatarios()
+
+        // Atualiza a lista de usuários.
+        private bool CarregarDestinatarios()
         {
-            cmbDestinatario.Items.Clear();
+            string selecionado = "Chat Geral";
 
-            cmbDestinatario.Items.Add("Chat Geral");
-
-            foreach (string usuario in ControleDeLogin.ObterUsuariosCadastrados())
+            if (cmbDestinatario.SelectedItem != null)
             {
-                if (usuario != usuarioAtual.Apelido)
+                selecionado = cmbDestinatario.SelectedItem.ToString();
+            }
+
+            List<string> novosUsuarios = FuncoesUsuario.ObterUsuarios();
+
+            novosUsuarios.RemoveAll(usuario => usuario == usuarioAtual.Apelido);
+
+            novosUsuarios.Insert(0, "Chat Geral");
+
+            List<string> usuariosAtuais = cmbDestinatario.Items.Cast<object>().Select(item => item.ToString()).ToList();
+
+            // Verifica se a lista mudou.
+            if (novosUsuarios.SequenceEqual(usuariosAtuais))
+            {
+                return false;
+            }
+            cmbDestinatario.BeginUpdate();
+            try
+            {
+                cmbDestinatario.Items.Clear();
+
+                foreach (string usuario in novosUsuarios)
                 {
                     cmbDestinatario.Items.Add(usuario);
                 }
+
+                int indice = novosUsuarios.IndexOf(selecionado);
+
+                if (indice >= 0)
+                {
+                    cmbDestinatario.SelectedIndex = indice;
+                }
+                else if (cmbDestinatario.Items.Count > 0)
+                {
+                    cmbDestinatario.SelectedIndex = 0;
+                }
             }
-            if (cmbDestinatario.Items.Count > 0)
+            finally
             {
-                cmbDestinatario.SelectedIndex = 0;
+                cmbDestinatario.EndUpdate();
             }
+
+            return true;
         }
         public void AtualizarHistorico()
         {
             lstHistorico.Items.Clear();
+
             if (cmbDestinatario.SelectedItem == null)
                 return;
+
             string selecionado = cmbDestinatario.SelectedItem.ToString();
-            foreach (Mensagem m in servico.ObterHistorico())
+            List<Mensagem> mensagens = servico.ObterHistorico();
+
+            foreach (Mensagem mensagem in mensagens)
             {
                 if (selecionado == "Chat Geral")
                 {
-                    if (m.Destinatario == "Chat Geral")
+                    if (mensagem.Destinatario == "Chat Geral")
                     {
-                        lstHistorico.Items.Add(m.ToString());
+                        lstHistorico.Items.Add(mensagem.ToString());
                     }
                 }
                 else
                 {
-                    bool mensagemEnviada = m.Remetente == usuarioAtual.Apelido && m.Destinatario == selecionado;
-                    bool mensagemRecebida = m.Remetente == selecionado && m.Destinatario == usuarioAtual.Apelido;
-                    if (mensagemEnviada || mensagemRecebida)
+                    bool enviada = mensagem.Remetente == usuarioAtual.Apelido && mensagem.Destinatario == selecionado;
+                    bool recebida = mensagem.Remetente == selecionado && mensagem.Destinatario == usuarioAtual.Apelido;
+                    if (enviada || recebida)
                     {
-                        lstHistorico.Items.Add(m.ToString());
+                        lstHistorico.Items.Add(mensagem.ToString());
                     }
                 }
             }
-        }
-        static string ObterIpLocal()
-        {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            var ipEncontrado = host.AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
-            return ipEncontrado != null ? ipEncontrado.ToString() : "127.0.0.1";
-        }
-        public void ReceberMensagem(string linha)
-        {
-            try
+            if (lstHistorico.Items.Count > 0)
             {
-                AnalisadorDeProtocolo analisador = new AnalisadorDeProtocolo();
+                lstHistorico.TopIndex = lstHistorico.Items.Count - 1;
+            }
+        }
 
-                MensagemTexto mensagem = analisador.Analisar(linha);
-                if (IsDisposed || !IsHandleCreated)
-                    return;
-                BeginInvoke(new Action(() =>{ servico.AdicionarMensagem(mensagem); AtualizarHistorico(); }));
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
-            }
-        }
-        private async void FormEnvio_Load(object sender, EventArgs e)
+        private void Temporizador_Tick(object sender, EventArgs e)
         {
             try
             {
-                string ip = ObterIpLocal();
-                await conexao.ConectarAsync("127.0.0.1", 5000, usuarioAtual.Apelido);
-                MessageBox.Show("Conectado ao servidor!");
+                bool usuariosAlterados = CarregarDestinatarios();
+
+                int totalMensagens = servico.Resumo();
+
+                if (usuariosAlterados || totalMensagens != quantidadeMensagens)
+                {
+                    quantidadeMensagens = totalMensagens;
+                    AtualizarHistorico();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Não foi possível conectar: " + ex.Message);
+                MessageBox.Show("Erro ao atualizar histórico: " + ex.Message);
             }
         }
-        private async void btnEnviar_Click(object sender, EventArgs e)
+        private void btnEnviar_Click(object sender, EventArgs e)
         {
             try
             {
@@ -124,35 +154,40 @@ namespace MensageiroIF.Cliente.Apresentação
                 }
                 string destinatario = cmbDestinatario.SelectedItem.ToString();
                 string texto = txtMensagem.Text.Trim();
-                if (string.IsNullOrWhiteSpace(destinatario))
-                {
-                    MessageBox.Show("Informe o destinatário.");
-                    return;
-                }
+                Usuario usuarioDestinatario = new Usuario(destinatario);
+                DateTime data = DateTime.Now;
                 if (string.IsNullOrWhiteSpace(texto))
                 {
                     MessageBox.Show("Digite uma mensagem.");
                     return;
                 }
-                usuarioDestinatario.Apelido = destinatario;
-                DateTime data = DateTime.Now;
-                texto = texto.Replace("\r", " ").Replace("\n", " ");
-                string protocolo = $"ENVIAR|{usuarioAtual.Apelido}|{destinatario}|{data:yyyy-MM-dd'T'HH:mm}|{texto}";
-                await conexao.EnviarAsync(protocolo);
-                servico.Registrar(texto, usuarioAtual, usuarioDestinatario, data);
+                servico.Registrar(texto,usuarioAtual,usuarioDestinatario,data);
+                FuncoesEventos.RegistrarEnvio(usuarioAtual.Apelido, destinatario, texto);
+                quantidadeMensagens = servico.Resumo();
                 AtualizarHistorico();
-                txtMensagem.Clear();
             }
             catch (ProtocoloInvalidoException ex)
-            {
-                MessageBox.Show(ex.Message, "Mensagem inválida");
-            }
-            catch (Exception ex)
             {
                 MessageBox.Show("Erro ao enviar mensagem: " + ex.Message);
             }
         }
-        private void lstHistorico_SelectedIndexChanged(object sender, EventArgs e){}
+
+        private void FormEnvio_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            temporizador.Stop();
+            FuncoesEventos.RegistrarSaida(usuarioAtual.Apelido);
+        }
+
+        private void FormEnvio_Load(object sender, EventArgs e)
+        {
+            CarregarDestinatarios();
+            AtualizarHistorico();
+        }
+
+        private void lstHistorico_SelectedIndexChanged(object sender, EventArgs e)
+        {
+        }
+
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             AtualizarHistorico();
