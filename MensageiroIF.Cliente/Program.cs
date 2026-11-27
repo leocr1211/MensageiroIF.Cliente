@@ -1,8 +1,8 @@
 ﻿using MensageiroIF.Cliente.Apresentação;
-using MensageiroIF.Cliente.Contratos;
-using MensageiroIF.Cliente.Dominio;
-using MensageiroIF.Cliente.Infraestrutura;
-using MensageiroIF.Cliente.Servicos;
+using MensageiroIF.Contratos;
+using MensageiroIF.Dominio;
+using MensageiroIF.Infraestrutura;
+using MensageiroIF.Servicos;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -50,11 +50,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MensageiroIF.Cliente\MensageiroIF.Cliente.csproj">
-      <Project>{4bb627e3-e319-4005-9986-fabded02ad06}</Project>
-      <Name>MensageiroIF.Cliente</Name>
+    <ProjectReference Include="..\MensageiroIF\MensageiroIF.csproj">
+      <Project>{657dba9e-5682-46c3-9f9a-b19f91b69899}</Project>
+      <Name>MensageiroIF</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

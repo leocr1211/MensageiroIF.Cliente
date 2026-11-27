@@ -64,30 +64,11 @@
     <Compile Include="Apresentação\FormEnvio.Designer.cs">
       <DependentUpon>FormEnvio.cs</DependentUpon>
     </Compile>
-    <Compile Include="Contratos\ICanalDeComunicacao.cs" />
-    <Compile Include="Contratos\IRepositorioDeMensagens.cs" />
-    <Compile Include="Dominio\Conversa.cs" />
-    <Compile Include="Dominio\Mensagem.cs" />
-    <Compile Include="Dominio\MensagemArquivo.cs" />
-    <Compile Include="Dominio\MensagemSistema.cs" />
-    <Compile Include="Dominio\MensagemTexto.cs" />
-    <Compile Include="Dominio\Usuario.cs" />
-    <Compile Include="Excecoes\MensagemInvalidaException.cs" />
-    <Compile Include="Excecoes\ProtocoloInvalidoException.cs" />
     <Compile Include="Funcoes\FuncoesEventos.cs" />
     <Compile Include="Funcoes\FuncoesMensagem.cs" />
     <Compile Include="Funcoes\FuncoesUsuario.cs" />
-    <Compile Include="Infraestrutura\AnalisadorDeProtocolo.cs" />
-    <Compile Include="Infraestrutura\CanalArquivo.cs" />
-    <Compile Include="Infraestrutura\RegistradorDeLog.cs" />
-    <Compile Include="Infraestrutura\RepositorioEmArquivo.cs" />
-    <Compile Include="Infraestrutura\RepositorioEmMemoria.cs" />
-    <Compile Include="Infraestrutura\RepositorioFalso.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Servicos\Pedido.cs" />
-    <Compile Include="Servicos\ProcessadorEventos.cs" />
-    <Compile Include="Servicos\ServicoDeHistorico.cs" />
     <EmbeddedResource Include="Apresentação\ControleDeLogin.resx">
       <DependentUpon>ControleDeLogin.cs</DependentUpon>
     </EmbeddedResource>
@@ -118,6 +99,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MensageiroIF\MensageiroIF.csproj">
+      <Project>{657dba9e-5682-46c3-9f9a-b19f91b69899}</Project>
+      <Name>MensageiroIF</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

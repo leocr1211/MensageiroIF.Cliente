@@ -1,4 +1,4 @@
-﻿using MensageiroIF.Cliente.Excecoes;
+﻿using MensageiroIF.Excecoes;
 using System;
 using System.Collections.Concurrent;
 using System.IO;

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using MensageiroIF.Cliente.Dominio;
-using MensageiroIF.Cliente.Infraestrutura;
+using MensageiroIF.Dominio;
+using MensageiroIF.Infraestrutura;
 
 namespace MensageiroIF.Cliente.Funcoes
 {

@@ -1,14 +1,12 @@
-﻿
-using MensageiroIF.Cliente.Dominio;
-using MensageiroIF.Cliente.Servicos;
-using MensageiroIF.Cliente.Funcoes;
+﻿using MensageiroIF.Dominio;
+using MensageiroIF.Servicos;
+using MensageiroIF.Funcoes;
+using MensageiroIF.Excecoes;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using MensageiroIF.Cliente.Excecoes;
-
 namespace MensageiroIF.Cliente.Apresentação
 {
     public partial class FormEnvio : Form
@@ -17,46 +15,30 @@ namespace MensageiroIF.Cliente.Apresentação
         private readonly Usuario usuarioAtual;
         private readonly Timer temporizador = new Timer();
         private int quantidadeMensagens;
-
         public FormEnvio(ServicoDeHistorico servico, Usuario usuarioAtual, Usuario usuarioDestinatario)
         {
             InitializeComponent();
-
             this.servico = servico;
             this.usuarioAtual = usuarioAtual;
-
             CarregarDestinatarios();
-
             AtualizarHistorico();
-
             quantidadeMensagens = servico.Resumo();
-
             temporizador.Interval = 1000;
             temporizador.Tick += Temporizador_Tick;
             temporizador.Start();
-
             FormClosed += FormEnvio_FormClosed;
         }
-
-        // Atualiza a lista de usuários.
         private bool CarregarDestinatarios()
         {
             string selecionado = "Chat Geral";
-
             if (cmbDestinatario.SelectedItem != null)
             {
                 selecionado = cmbDestinatario.SelectedItem.ToString();
             }
-
             List<string> novosUsuarios = FuncoesUsuario.ObterUsuarios();
-
             novosUsuarios.RemoveAll(usuario => usuario == usuarioAtual.Apelido);
-
             novosUsuarios.Insert(0, "Chat Geral");
-
             List<string> usuariosAtuais = cmbDestinatario.Items.Cast<object>().Select(item => item.ToString()).ToList();
-
-            // Verifica se a lista mudou.
             if (novosUsuarios.SequenceEqual(usuariosAtuais))
             {
                 return false;
@@ -65,14 +47,11 @@ namespace MensageiroIF.Cliente.Apresentação
             try
             {
                 cmbDestinatario.Items.Clear();
-
                 foreach (string usuario in novosUsuarios)
                 {
                     cmbDestinatario.Items.Add(usuario);
                 }
-
                 int indice = novosUsuarios.IndexOf(selecionado);
-
                 if (indice >= 0)
                 {
                     cmbDestinatario.SelectedIndex = indice;
@@ -86,19 +65,15 @@ namespace MensageiroIF.Cliente.Apresentação
             {
                 cmbDestinatario.EndUpdate();
             }
-
             return true;
         }
         public void AtualizarHistorico()
         {
             lstHistorico.Items.Clear();
-
             if (cmbDestinatario.SelectedItem == null)
                 return;
-
             string selecionado = cmbDestinatario.SelectedItem.ToString();
             List<Mensagem> mensagens = servico.ObterHistorico();
-
             foreach (Mensagem mensagem in mensagens)
             {
                 if (selecionado == "Chat Geral")
@@ -123,15 +98,12 @@ namespace MensageiroIF.Cliente.Apresentação
                 lstHistorico.TopIndex = lstHistorico.Items.Count - 1;
             }
         }
-
         private void Temporizador_Tick(object sender, EventArgs e)
         {
             try
             {
                 bool usuariosAlterados = CarregarDestinatarios();
-
                 int totalMensagens = servico.Resumo();
-
                 if (usuariosAlterados || totalMensagens != quantidadeMensagens)
                 {
                     quantidadeMensagens = totalMensagens;
@@ -171,23 +143,19 @@ namespace MensageiroIF.Cliente.Apresentação
                 MessageBox.Show("Erro ao enviar mensagem: " + ex.Message);
             }
         }
-
         private void FormEnvio_FormClosed(object sender, FormClosedEventArgs e)
         {
             temporizador.Stop();
             FuncoesEventos.RegistrarSaida(usuarioAtual.Apelido);
         }
-
         private void FormEnvio_Load(object sender, EventArgs e)
         {
             CarregarDestinatarios();
             AtualizarHistorico();
         }
-
         private void lstHistorico_SelectedIndexChanged(object sender, EventArgs e)
         {
         }
-
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             AtualizarHistorico();

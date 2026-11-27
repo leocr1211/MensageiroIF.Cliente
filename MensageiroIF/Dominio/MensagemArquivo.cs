@@ -1,23 +1,22 @@
-﻿using MensageiroIF.Cliente.Contratos;
-using MensageiroIF.Cliente.Dominio;
-using MensageiroIF.Cliente.Excecoes;
-using MensageiroIF.Cliente.Infraestrutura;
-using MensageiroIF.Cliente.Servicos;
+﻿using MensageiroIF.Contratos;
+using MensageiroIF.Dominio;
+using MensageiroIF.Excecoes;
+using MensageiroIF.Infraestrutura;
+using MensageiroIF.Servicos;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace MensageiroIF.Cliente.Dominio
+namespace MensageiroIF.Dominio
 {
     internal class MensagemArquivo
     {
+        private static readonly string caminhoArquivo = "C:\\MensageiroIF";
         public static void GaranteDiretorio()
         {
-            string pasta = "C:\\MensageiroIF.Cliente";
+            string pasta = "C:\\MensageiroIF";
             if (!Directory.Exists(pasta))
             {
                 Directory.CreateDirectory(pasta);
@@ -26,12 +25,12 @@ namespace MensageiroIF.Cliente.Dominio
         public static void Ler()
         {
             GaranteDiretorio();
-            string caminho = @"C:\MensageiroIF.Cliente\entrada.txt";
+            string caminho = "C:\\MensageiroIF\\entrada.txt";
 
             if (!File.Exists(caminho))
             {
-                File.Create(caminho).Close();
-                MessageBox.Show("O arquivo 'entrada.txt' não existia e foi criado vazio.");
+                File.Create(caminho).Close(); 
+                System.Diagnostics.Debug.WriteLine("O arquivo 'entrada.txt' não existia e foi criado vazio.");
                 return;
             }
 
@@ -41,7 +40,7 @@ namespace MensageiroIF.Cliente.Dominio
                 string linha = leitor.ReadLine();
                 while (linha != null)
                 {
-                    MessageBox.Show(linha);
+                    System.Diagnostics.Debug.WriteLine(linha);
                     linha = leitor.ReadLine();
                 }
             }
@@ -49,7 +48,7 @@ namespace MensageiroIF.Cliente.Dominio
         public static void Gravar()
         {
             GaranteDiretorio();
-            string caminho = "C:\\MensageiroIF.Cliente\\historico.txt";
+            string caminho = "C:\\MensageiroIF\\historico.txt";
 
             using (Stream saida = File.Open(caminho, FileMode.Create))
             using (StreamWriter escritor = new StreamWriter(saida))
@@ -62,7 +61,7 @@ namespace MensageiroIF.Cliente.Dominio
             try
             {
                 GaranteDiretorio();
-                string caminho = "C:\\MensageiroIF.Cliente\\arquivo.txt";
+                string caminho = "C:\\MensageiroIF\\arquivo.txt";
                 if (!File.Exists(caminho))
                 {
                     File.Create(caminho).Close();
